@@ -147,7 +147,7 @@
     </insert>
 
     <!-- 添加 （批量插入）-->
-    <insert id="insertBatch" parameterType="${basePackage}.entity.po.${table.beanName}" <#if autoIncrementColumn.column??>useGeneratedKeys="true" keyProperty="${autoIncrementColumn.propertyName}"</#if>>
+    <insert id="insertBatch" parameterType="${basePackage}.entity.po.${table.beanName}" <#if autoIncrementColumn.column??>useGeneratedKeys="true" keyProperty="${autoIncrementColumn.column.propertyName}"</#if>>
         INSERT INTO ${table.tableName}
             (<#list table.fieldList as field>
                 <#if (field.isAutoIncrement?? && field.isAutoIncrement)?string('yes', 'no') == 'no'>${field.fieldName}<#if field?has_next>,</#if></#if></#list>
@@ -201,5 +201,4 @@
 
     ${createIndexQuery(basePackage+".entity.query."+table.beanParamName,table.tableName,BASE_RESULT_MAP, BASE_COLUMN_LIST, tableAlias, table.keyIndexMap, table.fieldList)}
 
-</mapper>
 </mapper>
