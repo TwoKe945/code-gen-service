@@ -26,7 +26,7 @@ public class FieldInfo {
     /**
      * 字段是否是自增长
      */
-    private Boolean isAutoIncrement;
+    private Boolean isAutoIncrement = false;
 
     public String getFieldName() {
         return fieldName;
@@ -52,11 +52,11 @@ public class FieldInfo {
         this.comment = comment;
     }
 
-    public Boolean getAutoIncrement() {
+    public Boolean getIsAutoIncrement() {
         return isAutoIncrement;
     }
 
-    public void setAutoIncrement(Boolean autoIncrement) {
+    public void setIsAutoIncrement(Boolean autoIncrement) {
         isAutoIncrement = autoIncrement;
     }
 

@@ -74,7 +74,7 @@
         FROM ${table.tableName} ${tableAlias}
         <include refid="${QUERY_CONDITION}"/>
         <if test="query.orderBy!=null and query.orderBy!=''">
-            order by <#noparse>#{</#noparse>query.orderBy<#noparse>}</#noparse>
+            order by <#noparse>${</#noparse>query.orderBy<#noparse>}</#noparse>
         </if>
         <if test="query.simplePage!=null">
             limit <#noparse>#{</#noparse>query.simplePage.start<#noparse>}</#noparse>,<#noparse>#{</#noparse>query.simplePage.end<#noparse>}</#noparse>
@@ -99,16 +99,16 @@
         INSERT INTO ${table.tableName}
         <trim prefix="(" suffix=")" suffixOverrides=",">
             <#list table.fieldList as field>
-                <#if (field.isAutoIncrement?? && field.isAutoIncrement)?string('yes', 'no') == 'no'>
-            <if test="bean.${field.propertyName}!=null">
-                ${field.fieldName},
-            </if>
-                </#if>
+              <#if field.isAutoIncrement == false>
+                <if test="bean.${field.propertyName}!=null">
+                    ${field.fieldName},
+                </if>
+              </#if>
             </#list>
         </trim>
         <trim prefix="VALUES (" suffix=")" suffixOverrides=",">
             <#list table.fieldList as field>
-                <#if (field.isAutoIncrement?? && field.isAutoIncrement)?string('yes', 'no') == 'no'>
+              <#if  field.isAutoIncrement == false>
             <if test="bean.${field.propertyName}!=null">
                 <#noparse>#{</#noparse>bean.${field.propertyName}<#noparse>}</#noparse>,
             </if>
@@ -122,22 +122,26 @@
         INSERT INTO ${table.tableName}
         <trim prefix="(" suffix=")" suffixOverrides=",">
             <#list table.fieldList as field>
-            <if test="bean.${field.propertyName}!=null">
-                ${field.fieldName},
-            </if>
+              <#if field.isAutoIncrement == false>
+                <if test="bean.${field.propertyName}!=null">
+                    ${field.fieldName},
+                </if>
+              </#if>
             </#list>
         </trim>
         <trim prefix="VALUES (" suffix=")" suffixOverrides=",">
             <#list table.fieldList as field>
-            <if test="bean.${field.propertyName}!=null">
-                <#noparse>#{</#noparse>bean.${field.propertyName}<#noparse>}</#noparse>,
-            </if>
+                 <#if field.isAutoIncrement == false>
+                  <if test="bean.${field.propertyName}!=null">
+                    <#noparse>#{</#noparse>bean.${field.propertyName}<#noparse>}</#noparse>,
+                    </if>
+                </#if>
             </#list>
         </trim>
          on DUPLICATE key update
-         <trim prefix="(" suffix=")" suffixOverrides=",">
+         <trim prefix="" suffix="" suffixOverrides=",">
             <#list table.fieldList as field>
-                <#if (field.isAutoIncrement?? && field.isAutoIncrement)?string('yes', 'no') == 'no'>
+              <#if field.isAutoIncrement == false>
             <if test="bean.${field.propertyName}!=null">
                 ${field.fieldName} = VALUES(${field.fieldName}),
             </if>
@@ -150,12 +154,12 @@
     <insert id="insertBatch" parameterType="${basePackage}.entity.po.${table.beanName}" <#if autoIncrementColumn.column??>useGeneratedKeys="true" keyProperty="${autoIncrementColumn.column.propertyName}"</#if>>
         INSERT INTO ${table.tableName}
             (<#list table.fieldList as field>
-                <#if (field.isAutoIncrement?? && field.isAutoIncrement)?string('yes', 'no') == 'no'>${field.fieldName}<#if field?has_next>,</#if></#if></#list>
+              <#if field.isAutoIncrement == false>${field.fieldName}<#if field?has_next>,</#if></#if></#list>
             )
         VALUES
         <foreach collection="list" item="item" separator=",">
             (<#list table.fieldList as field>
-                <#if (field.isAutoIncrement?? && field.isAutoIncrement)?string('yes', 'no') == 'no'><#noparse>#{</#noparse>item.${field.propertyName}<#noparse>}</#noparse><#if field?has_next>,</#if></#if></#list>
+              <#if field.isAutoIncrement == false><#noparse>#{</#noparse>item.${field.propertyName}<#noparse>}</#noparse><#if field?has_next>,</#if></#if></#list>
             )
         </foreach>
     </insert>
@@ -164,17 +168,17 @@
     <insert id="insertOrUpdateBatch" parameterType="${basePackage}.entity.po.${table.beanName}">
         INSERT INTO ${table.tableName}
             (<#list table.fieldList as field>
-                <#if (field.isAutoIncrement?? && field.isAutoIncrement)?string('yes', 'no') == 'no'>${field.fieldName}<#if field?has_next>,</#if></#if></#list>
+              <#if field.isAutoIncrement == false>${field.fieldName}<#if field?has_next>,</#if></#if></#list>
             )
         VALUES
         <foreach collection="list" item="item" separator=",">
             (<#list table.fieldList as field>
-                <#if (field.isAutoIncrement?? && field.isAutoIncrement)?string('yes', 'no') == 'no'><#noparse>#{</#noparse>item.${field.propertyName}<#noparse>}</#noparse><#if field?has_next>,</#if></#if></#list>
+              <#if field.isAutoIncrement == false><#noparse>#{</#noparse>item.${field.propertyName}<#noparse>}</#noparse><#if field?has_next>,</#if></#if></#list>
             )
         </foreach>
         on DUPLICATE key update
         <#list table.fieldList as field>
-            <#if (field.isAutoIncrement?? && field.isAutoIncrement)?string('yes', 'no') == 'no'>
+          <#if field.isAutoIncrement == false>
                 ${field.fieldName} = VALUES(${field.fieldName})<#if field?has_next>,</#if>
             </#if>
         </#list>

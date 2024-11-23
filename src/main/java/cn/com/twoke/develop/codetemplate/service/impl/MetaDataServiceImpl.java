@@ -159,9 +159,9 @@ public abstract class MetaDataServiceImpl implements MetaDataService {
             fieldInfo.setJavaType(javaType);
             fieldInfo.setComment(comment);
             if (isAutoIncrement) {
-                fieldInfo.setAutoIncrement(true);
+                fieldInfo.setIsAutoIncrement(true);
             } else {
-                fieldInfo.setAutoIncrement(false);
+                fieldInfo.setIsAutoIncrement(false);
             }
             log.info("字段名:{},类型:{}，扩展:{}，备注:{}，Java类型:{},Jave属性名:{}", field, type, isAutoIncrement , comment, javaType, propertyName);
             filedInfoList.add(fieldInfo);

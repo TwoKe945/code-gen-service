@@ -37,7 +37,7 @@ public class MapperMethod {
                     sb.append(" \t\t <set> ");
                     sb.append("\n");
                     for (FieldInfo FieldInfo : fieldInfoList) {
-                        if ((null != FieldInfo.getAutoIncrement() && FieldInfo.getAutoIncrement())) {
+                        if ((null != FieldInfo.getIsAutoIncrement() && FieldInfo.getIsAutoIncrement())) {
                             continue;
                         }
 

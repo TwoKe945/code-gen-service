@@ -112,7 +112,7 @@ public class TableFieldMethod {
     public Map<String, FieldInfo> getAutoIncrementColumn(List<FieldInfo> fieldInfoList) {
         FieldInfo autoIncrementColumn = null;
         for (FieldInfo FieldInfo : fieldInfoList) {
-            if (null != FieldInfo.getAutoIncrement() && FieldInfo.getAutoIncrement()) {
+            if (null != FieldInfo.getIsAutoIncrement() && FieldInfo.getIsAutoIncrement()) {
                 autoIncrementColumn = FieldInfo;
                 break;
             }
