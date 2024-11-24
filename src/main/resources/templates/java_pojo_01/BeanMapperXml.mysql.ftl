@@ -30,7 +30,7 @@
         <#list table.fieldList as field>
          <if test="query.${field.propertyName}!=null<#if isJavaStringType(field.javaType) || isJavaDateType(field.javaType)> and query.${field.propertyName}!=''</#if>">
              <#if isJavaDateType(field.javaType)>
-                 <![CDATA[ and ${tableAlias}.${field.fieldName}=str_to_date(<#noparse>#{</#noparse>query.${field.propertyName}<#noparse>}</#noparse>, '%Y-%m-%d') ]]>
+                 <![CDATA[ and ${tableAlias}.${field.fieldName}=str_to_date(<#noparse>#{</#noparse>query.${field.propertyName}<#noparse>}</#noparse>, '%Y-%m-%d %H:%i:%s') ]]>
              <#else>
                  and ${tableAlias}.${field.fieldName}=<#noparse>#{</#noparse>query.${field.propertyName}<#noparse>}</#noparse>
              </#if>

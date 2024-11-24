@@ -27,6 +27,15 @@ public class FieldInfo {
      * 字段是否是自增长
      */
     private Boolean isAutoIncrement = false;
+    private Boolean isPrimaryKey = false;
+
+    public Boolean getIsPrimaryKey() {
+        return isPrimaryKey;
+    }
+
+    public void setIsPrimaryKey(Boolean isPrimaryKey) {
+        this.isPrimaryKey = isPrimaryKey;
+    }
 
     public String getFieldName() {
         return fieldName;
@@ -57,7 +66,7 @@ public class FieldInfo {
     }
 
     public void setIsAutoIncrement(Boolean autoIncrement) {
-        isAutoIncrement = autoIncrement;
+        this.isAutoIncrement = autoIncrement;
     }
 
     public String getSqlType() {

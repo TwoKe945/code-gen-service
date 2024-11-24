@@ -4,6 +4,10 @@ import cn.com.twoke.develop.codetemplate.config.datasource.DataSourceContextHold
 import cn.com.twoke.develop.codetemplate.config.datasource.DynamicDataSource;
 import cn.com.twoke.develop.codetemplate.context.DataSourceKeyHolder;
 import cn.com.twoke.develop.codetemplate.context.ConfigContextHolder;
+import cn.com.twoke.develop.codetemplate.context.MetaDataServiceHolder;
+import cn.com.twoke.develop.codetemplate.enums.DatabaseId;
+import cn.com.twoke.develop.codetemplate.service.MetaDataService;
+import cn.com.twoke.develop.codetemplate.service.MetaDataServiceFactory;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.crypto.digest.MD5;
 import com.zaxxer.hikari.HikariDataSource;
@@ -32,6 +36,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class AutoInjectDataSourceAspect {
     private final DynamicDataSource dynamicDataSource;
+    private final MetaDataServiceFactory metaDataServiceFactory;
 
     @Pointcut("@annotation(cn.com.twoke.develop.codetemplate.aspect.AutoInjectDataSource)")
     public void  pointcut() {}
@@ -61,6 +66,7 @@ public class AutoInjectDataSourceAspect {
     private void cleanThreadLocal() {
         // 清除线程变量
         ConfigContextHolder.remove();
+        MetaDataServiceHolder.remove();
     }
 
 
@@ -71,21 +77,28 @@ public class AutoInjectDataSourceAspect {
             String url = request.getHeader("url");
             String username = request.getHeader("username");
             String password = request.getHeader("password");
-            String driverType = Optional.ofNullable(request.getHeader("type")).orElse("mysql");
+            String driverType = Optional.ofNullable(request.getHeader("type")).orElse(DatabaseId.MYSQL.name());
             if (StrUtil.isBlank(url) || StrUtil.isBlank(username) || StrUtil.isBlank(password)) {
                 throw new RuntimeException("参数缺失");
             }
+            DatabaseId databaseId = getDatabaseId(driverType);
+            MetaDataServiceHolder.set(metaDataServiceFactory.getService(databaseId));
             // 设置数据源
-            setDataSource(url, username, password, getDriverClassName(driverType));
+            setDataSource(url, username, password, databaseId.getDriverClassName());
+
         }
         if (autoDataSource.config()) {
             String basePackage = request.getHeader("package");
             String cwd = request.getHeader("cwd");
+            String driverType = Optional.ofNullable(request.getHeader("type")).orElse("mysql");
+            DatabaseId databaseType = DatabaseId.valueOf(driverType.toUpperCase());
+
             if (StrUtil.isBlank(basePackage) || StrUtil.isBlank(cwd)) {
                 throw new RuntimeException("参数缺失");
             }
             ConfigContextHolder.set(ConfigContext.builder()
                             .basePackage(basePackage)
+                            .databaseId(databaseType)
                             .cwdPath(cwd)
                     .build());
         }
@@ -115,17 +128,12 @@ public class AutoInjectDataSourceAspect {
          return MD5.create().digestHex16(url + username + password);
     }
 
-     private String getDriverClassName(String type) {
-        switch (type.toLowerCase()) {
-            case "mysql":
-                return "com.mysql.cj.jdbc.Driver";
-            case "postgresql":
-                return "org.postgresql.Driver";
-            case "oracle":
-                return "oracle.jdbc.driver.OracleDriver";
-            // 可以添加更多数据库类型的驱动
-            default:
-                throw new IllegalArgumentException("Unsupported database type: " + type);
+     private DatabaseId getDatabaseId(String type) {
+        try {
+            DatabaseId databaseType = DatabaseId.valueOf(type.toUpperCase());
+            return databaseType;
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Invalid database type: " + type);
         }
     }
 

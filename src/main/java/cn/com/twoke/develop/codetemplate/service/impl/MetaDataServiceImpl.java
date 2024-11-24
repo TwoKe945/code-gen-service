@@ -133,6 +133,7 @@ public abstract class MetaDataServiceImpl implements MetaDataService {
             String field = getFieldName(fieldResult);
             String type = getFieldType(fieldResult);
             Boolean isAutoIncrement = isAutoIncrement(fieldResult);
+            Boolean isPrimaryKey = isPrimaryKey(fieldResult);
             String comment = getFieldComment(fieldResult);
 
             String propertyName = processField(false, field);
@@ -158,12 +159,10 @@ public abstract class MetaDataServiceImpl implements MetaDataService {
             fieldInfo.setSqlType(type);
             fieldInfo.setJavaType(javaType);
             fieldInfo.setComment(comment);
-            if (isAutoIncrement) {
-                fieldInfo.setIsAutoIncrement(true);
-            } else {
-                fieldInfo.setIsAutoIncrement(false);
-            }
-            log.info("字段名:{},类型:{}，扩展:{}，备注:{}，Java类型:{},Jave属性名:{}", field, type, isAutoIncrement , comment, javaType, propertyName);
+            fieldInfo.setIsPrimaryKey(isPrimaryKey);
+            fieldInfo.setIsAutoIncrement(isAutoIncrement);
+
+            log.info("字段名:{},是否为主键：{}，类型:{}，扩展:{}，备注:{}，Java类型:{},Jave属性名:{}", field, isPrimaryKey , type, isAutoIncrement , comment, javaType, propertyName);
             filedInfoList.add(fieldInfo);
             fieldInfoMap.put(field, fieldInfo);
         }
@@ -290,6 +289,14 @@ public abstract class MetaDataServiceImpl implements MetaDataService {
      */
     protected abstract Boolean isAutoIncrement(ResultSet rs) throws SQLException ;
 
+    /**
+     * 是否为主键
+     * @param rs
+     * @return
+     * @throws SQLException
+     */
+    protected abstract Boolean isPrimaryKey(ResultSet rs) throws SQLException ;
+
     protected abstract String getIndexKeyName(ResultSet rs) throws SQLException ;
     protected abstract Boolean getIndexIsUnique(ResultSet rs) throws SQLException ;
     protected abstract String getIndexColumnName(ResultSet rs) throws SQLException ;
@@ -333,5 +340,7 @@ public abstract class MetaDataServiceImpl implements MetaDataService {
             }
         }
     }
+
+
 
 }

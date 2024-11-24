@@ -1,6 +1,7 @@
 package cn.com.twoke.develop.codetemplate.service;
 
 import cn.com.twoke.develop.codetemplate.bean.TableInfo;
+import cn.com.twoke.develop.codetemplate.enums.DatabaseId;
 
 import java.util.List;
 
@@ -23,5 +24,8 @@ public interface MetaDataService {
      * @return
      */
     List<TableInfo> queryTables();
+
+
+    DatabaseId getId();
 
 }

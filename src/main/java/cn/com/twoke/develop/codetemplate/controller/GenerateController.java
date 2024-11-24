@@ -2,8 +2,10 @@ package cn.com.twoke.develop.codetemplate.controller;
 
 import cn.com.twoke.develop.codetemplate.aspect.AutoInjectDataSource;
 import cn.com.twoke.develop.codetemplate.bean.TableInfo;
+import cn.com.twoke.develop.codetemplate.context.MetaDataServiceHolder;
 import cn.com.twoke.develop.codetemplate.service.GenerateService;
 import cn.com.twoke.develop.codetemplate.service.MetaDataService;
+import cn.com.twoke.develop.codetemplate.service.MetaDataServiceFactory;
 import cn.hutool.core.map.MapUtil;
 import freemarker.template.TemplateException;
 import lombok.RequiredArgsConstructor;
@@ -14,6 +16,7 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 @RestController
 @RequiredArgsConstructor
@@ -21,22 +24,21 @@ import java.util.Map;
 public class GenerateController {
 
     private final GenerateService generateService;
-    private final MetaDataService metaDataService;
 
 
     @GetMapping("/query/{tableName}")
     @AutoInjectDataSource()
     public TableInfo queryTable(@PathVariable("tableName") String tableName) throws IOException, TemplateException {
-        return metaDataService.queryTable(tableName);
+        return MetaDataServiceHolder.get().queryTable(tableName);
     }
 
     @GetMapping("/query/tables")
     @AutoInjectDataSource()
     public List<TableInfo> queryTables(boolean withFields) throws IOException, TemplateException {
         if (withFields) {
-            return metaDataService.queryTableWithColumns();
+            return MetaDataServiceHolder.get().queryTableWithColumns();
         } else {
-            return metaDataService.queryTables();
+            return MetaDataServiceHolder.get().queryTables();
         }
     }
 
@@ -50,17 +52,25 @@ public class GenerateController {
      */
     @PostMapping("/file/{template}/{tables}")
     @AutoInjectDataSource(config = true)
-    public Map<String ,Object> generateFiles(@PathVariable("template") String template,@PathVariable("tables") String tables) throws IOException, ConfigurationException, URISyntaxException {
-        // 验证模板参数是否合法
+    public Map<String ,Object> generateFiles(@PathVariable("template") String template,
+                                             @PathVariable("tables") String tables,
+                                             @RequestBody Map<String, TableInfo> data) throws IOException, ConfigurationException, URISyntaxException {
         if (template == null || !template.matches("^[a-zA-Z0-9_-]+$")) {
             throw new IllegalArgumentException("Invalid template name");
         }
+        TableInfo info = null;
         if ("base".equals(tables)) {
-            generateService.generateTemplate(template, tables);
+            generateService.generateTemplate(template, tables, info);
         } else {
             String[] split = tables.split(",");
             for (String table : split) {
-                generateService.generateTemplate(template, table);
+                if (!data.isEmpty()) {
+                    info = data.get(table);
+                }
+                if (Objects.isNull(info)) {
+                    info = MetaDataServiceHolder.get().queryTable(table);
+                }
+                generateService.generateTemplate(template, table, info);
             }
         }
         // 其他业务逻辑

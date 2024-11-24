@@ -148,19 +148,19 @@ public class Constants {
         BEAN_DATE_FORMAT_CLASS = environment.getProperty("bean.date.format.class");
     }
 
-    public final static String[] SQL_DATE_TIIME_TYPES = new String[]{"datetime", "timestamp"};
+    public final static String[] SQL_DATE_TIIME_TYPES = new String[]{"datetime", "timestamp", "TIME", "TIMESTAMP"};
 
-    public final static String[] SQL_DATE_TYPES = new String[]{"date"};
+    public final static String[] SQL_DATE_TYPES = new String[]{"date", "DATE"};
 
-    public static final String[] SQL_DECIMAL_TYPE = new String[]{"decimal", "double", "float"};
+    public static final String[] SQL_DECIMAL_TYPE = new String[]{"decimal", "double", "float", "FLOAT", "DOUBLE", "DECIMAL", "DOUBLE PRECISION"};
 
-    public static final String[] SQL_STRING_TYPE = new String[]{"char", "varchar", "text", "mediumtext", "longtext"};
+    public static final String[] SQL_STRING_TYPE = new String[]{"char", "varchar", "text", "mediumtext", "longtext", "VARCHAR"};
 
     //Integer
-    public static final String[] SQL_INTEGER_TYPE = new String[]{"int", "tinyint"};
+    public static final String[] SQL_INTEGER_TYPE = new String[]{"int", "tinyint", "INT", "NUMERIC", "TINYINT", "INTEGER"};
 
     //Long
-    public static final String[] SQL_LONG_TYPE = new String[]{"bigint"};
+    public static final String[] SQL_LONG_TYPE = new String[]{"bigint", "BIGINT"};
 
     /**
      * 常量

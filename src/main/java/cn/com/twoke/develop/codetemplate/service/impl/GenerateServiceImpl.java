@@ -5,8 +5,10 @@ import cn.com.twoke.develop.codetemplate.bean.Constants;
 import cn.com.twoke.develop.codetemplate.bean.TableInfo;
 import cn.com.twoke.develop.codetemplate.config.datasource.DataSourceContextHolder;
 import cn.com.twoke.develop.codetemplate.context.ConfigContextHolder;
+import cn.com.twoke.develop.codetemplate.enums.DatabaseId;
 import cn.com.twoke.develop.codetemplate.service.GenerateService;
 import cn.com.twoke.develop.codetemplate.service.MetaDataService;
+import cn.com.twoke.develop.codetemplate.service.MetaDataServiceFactory;
 import cn.com.twoke.develop.codetemplate.template.methods.TemplateMethodHandler;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
@@ -29,6 +31,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -38,28 +41,32 @@ import java.util.stream.StreamSupport;
 public class GenerateServiceImpl implements GenerateService {
 
     private final freemarker.template.Configuration freeMarkerConfig;
-    private final MetaDataService metaDataService;
+    private final MetaDataServiceFactory metaDataServiceFactory;
     private static final String TEMPLATES_NAME = "templates";
     private static final String CONFIG_FILE_NAME = "config.properties";
 
     @Override
-    public void generateTemplate(String template, String table) throws ConfigurationException, URISyntaxException, IOException {
+    public void generateTemplate(String template, String table, TableInfo info) throws ConfigurationException, URISyntaxException, IOException {
         ConfigContext configContext = ConfigContextHolder.get();
         String basePackage = configContext.getBasePackage();
+        DatabaseId databaseId = configContext.getDatabaseId();
+
         Configuration config = loadConfig(template);
-        TableInfo info;
-        if (!"base".equals(table)) {
-           info = metaDataService.queryTable(table);
-        } else {
-            info = null;
-        }
+
         URL resourceUrl = Thread.currentThread().getContextClassLoader().getResource("templates/" + template);
         Path templateDir = Paths.get(resourceUrl.toURI());
-        Files.list(templateDir).forEach(path -> {
-            if (!path.getFileName().toString().equals(CONFIG_FILE_NAME)) {
+        List<Path> paths =  Files.list(templateDir).collect(Collectors.toList());
+
+        for (Path path: paths) {
+            String templateFileName = String.valueOf(path.getFileName());
+            if (!templateFileName.equals(CONFIG_FILE_NAME)) {
                 try {
-                    String key = path.getFileName().toString().replace(".ftl", "");
-                    Template tpl = freeMarkerConfig.getTemplate( template +"/" + path.getFileName());
+                    String key = templateFileName.substring(0, templateFileName.indexOf("."));
+                    String dynamic = config.getString(key + ".dynamic");
+                    if (StringUtils.isNotBlank(dynamic) && !templateFileName.contains(databaseId.getName())) {
+                        continue;
+                    }
+                    Template tpl = freeMarkerConfig.getTemplate( template +"/" + templateFileName);
                     Map<String, Object> dataModel = new HashMap<>();
                     dataModel.put("basePackage", basePackage);
                     String pkg = config.getString(key + ".package", "");
@@ -84,25 +91,25 @@ public class GenerateServiceImpl implements GenerateService {
                     for (String depend : depends) {
                         String name = depend;
                         if (StringUtils.isNotBlank(config.getString(depend + ".name"))) {
-                           name = parseContent(config.getString(depend + ".name"), dataModel);
-                       }
+                            name = parseContent(config.getString(depend + ".name"), dataModel);
+                        }
                         String importPath = basePackage + (StringUtils.isNotBlank(config.getString(depend + ".package", "")) ? "." + config.getString(depend + ".package") : "") + "." + name;
                         imports.add(importPath);
                     }
                     dataModel.put("imports", imports);
                     // 渲染模板
-                   String content = FreeMarkerTemplateUtils.processTemplateIntoString(tpl, dataModel);
-                   String outDir = config.getString(key + ".output", "java");
-                   String output = configContext.getCwdPath() + "/src/main/" + outDir + "/" + pkgPath.replaceAll("\\.", "/");
-                   File outputDir = new File(output);
-                   if (!outputDir.exists()) {
-                       outputDir.mkdirs();
-                   }
-                   String ext = config.getString(key + ".ext", "java");
-                   String fileName = key;
-                   if (StringUtils.isNotBlank(config.getString(key + ".name"))) {
-                       fileName = parseContent(config.getString(key + ".name"), dataModel);
-                   }
+                    String content = FreeMarkerTemplateUtils.processTemplateIntoString(tpl, dataModel);
+                    String outDir = config.getString(key + ".output", "java");
+                    String output = configContext.getCwdPath() + "/src/main/" + outDir + "/" + pkgPath.replaceAll("\\.", "/");
+                    File outputDir = new File(output);
+                    if (!outputDir.exists()) {
+                        outputDir.mkdirs();
+                    }
+                    String ext = config.getString(key + ".ext", "java");
+                    String fileName = key;
+                    if (StringUtils.isNotBlank(config.getString(key + ".name"))) {
+                        fileName = parseContent(config.getString(key + ".name"), dataModel);
+                    }
                     File file = new File(  output+ "/" + fileName + "." + ext);
                     try (FileWriter writer = new FileWriter(file)) {
                         writer.write(content);
@@ -113,8 +120,7 @@ public class GenerateServiceImpl implements GenerateService {
                     throw new RuntimeException(e);
                 }
             }
-        });
-
+        }
     }
 
 

@@ -1,5 +1,6 @@
 package cn.com.twoke.develop.codetemplate.service.impl;
 
+import cn.com.twoke.develop.codetemplate.enums.DatabaseId;
 import cn.hutool.core.util.StrUtil;
 import org.springframework.stereotype.Service;
 
@@ -70,6 +71,11 @@ public class MySQLMetaDataServiceImpl extends MetaDataServiceImpl {
     }
 
     @Override
+    protected Boolean isPrimaryKey(ResultSet rs) throws SQLException {
+        return "PRI".equals(rs.getString("Key"));
+    }
+
+    @Override
     protected String getIndexKeyName(ResultSet rs) throws SQLException  {
         return rs.getString("KEY_NAME");
     }
@@ -83,5 +89,10 @@ public class MySQLMetaDataServiceImpl extends MetaDataServiceImpl {
     @Override
     protected String getIndexColumnName(ResultSet rs) throws SQLException  {
         return rs.getString("COLUMN_NAME");
+    }
+
+    @Override
+    public DatabaseId getId() {
+        return DatabaseId.MYSQL;
     }
 }
